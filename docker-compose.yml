@@ -1,0 +1,53 @@
+version: '3'
+services:
+  back:
+    image: sakanakns/episen-sca-ska-back
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD", "curl --fail -d \"name=test\" -X POST http://192.168.99.100:8080/add/order || exit 1"]
+      timeout: 30s²
+      interval: 1m
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          cpus: '0.15'
+          memory: 128m
+        reservations:
+          cpus: '0.05'
+          memory: 64M
+      mode: replicated
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+    volumes: 
+      - /tmp:/my-volumes/host-volume
+      - /home:/my-volumes/readonly-host-volume:ro
+  front:
+    image: sakanakns/episen-sca-ska-front
+    ports:
+      - "80:80"
+    links:
+      - "back"
+    healthcheck:
+      test: ["CMD", " curl --fail http://192.168.99.100:80/index.html || exit 1"]
+      timeout: 30s²
+      interval: 1m
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          cpus: '0.15'
+          memory: 128m
+        reservations:
+          cpus: '0.05'
+          memory: 64M
+      mode: replicated
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+    volumes:
+      - /d/Dev/docker/nginx-www/nginx/html/:/usr/share/nginx/html/ 
+      - /usr/local/apache2/htdocs
+
